@@ -1,0 +1,39 @@
+#include <iostream>
+#include <curl/curl.h>
+
+using namespace std;
+
+int main() {
+    // Initialize CURL session
+    CURL* curl = curl_easy_init();
+    if(curl) {
+        // Set URL to scrape
+        curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
+        
+        // Set callback function to handle response data
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, [](char* ptr, size_t size, size_t nmemb, void* userdata) -> size_t {
+            string* response = static_cast<string*>(userdata);
+            response->append(ptr, size * nmemb);
+            return size * nmemb;
+        });
+        
+        // Set response buffer
+        string response;
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        
+        // Perform HTTP request
+        CURLcode result = curl_easy_perform(curl);
+        
+        // Check for errors
+        if(result != CURLE_OK) {
+            cerr << "Error: " << curl_easy_strerror(result) << endl;
+        } else {
+            // Print response
+            cout << response << endl;
+        }
+        
+        // Cleanup
+        curl_easy_cleanup(curl);
+    }
+    return 0;
+}
